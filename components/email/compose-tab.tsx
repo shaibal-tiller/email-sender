@@ -85,6 +85,7 @@ const processEmailBodyForPreview = (content: string): string => {
 
     const listItems = content.split(/\n/);
 
+
     const listHtml = listItems
       .filter((item: any) => item.trim() !== '')
       .map((item: any) => `<li>${item.trim()}</li>`)
@@ -356,7 +357,7 @@ APA, RTPI, ISOCARP-এর সাথে আন্তর্জাতিক অং�
       <div>
         <h2 className="text-xl font-semibold mb-2">Email Composer</h2>
         <p className="text-sm text-muted-foreground">
-          Use variables like &#123;&#123;name&#125;&#125;, &#123;&#123;company&#125;&#123; for personalization
+          Use variables like &#123;&#123;name&#125;&#123;, &#123;&#123;company&#125;&#123; for personalization
         </p>
       </div>
 
@@ -502,7 +503,9 @@ APA, RTPI, ISOCARP-এর সাথে আন্তর্জাতিক অং�
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl p-0">
+        <DialogContent
+          className="max-w-[calc(100%-2rem)] sm:max-w-[80vw] p-0"
+        >
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5" /> Confirm Campaign Send
