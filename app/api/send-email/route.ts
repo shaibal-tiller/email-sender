@@ -4,11 +4,15 @@ const sql = neon(process.env.DATABASE_URL!)
 
 export async function POST(request: Request) {
   try {
-    const { recipient, recipientName, subject, body, imageUrl, mailgunDomain, mailgunApiKey, fromEmail, fromName } =
+    // mailgunApiKey is no longer expected in the request body
+    const { recipient, recipientName, subject, body, imageUrl, mailgunDomain, fromEmail, fromName } =
       await request.json()
 
+    // Retrieve the secret API Key from environment variables
+    const mailgunApiKey = process.env.MAILGUN_API_KEY
+
     if (!mailgunDomain || !mailgunApiKey || !fromEmail || !recipient) {
-      return Response.json({ error: "Missing required configuration" }, { status: 400 })
+      return Response.json({ error: "Missing required configuration or recipient data." }, { status: 400 })
     }
 
     const htmlBody = `
@@ -58,20 +62,13 @@ export async function POST(request: Request) {
       messageId = responseData.id
     }
 
-    await sql(
-      `INSERT INTO email_history (recipient_email, recipient_name, subject, body, image_url, status, mailgun_message_id, sent_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-      [
-        recipient,
-        recipientName,
-        subject,
-        body,
-        imageUrl || null,
-        status,
-        messageId,
-        status === "sent" ? new Date() : null,
-      ],
-    )
+    const sentAt = status === "sent" ? new Date() : null
+
+    // Using tagged template literal syntax for secure query
+    await sql`
+      INSERT INTO email_history (recipient_email, recipient_name, subject, body, image_url, status, mailgun_message_id, sent_at) 
+      VALUES (${recipient}, ${recipientName}, ${subject}, ${body}, ${imageUrl || null}, ${status}, ${messageId}, ${sentAt})
+    `
 
     if (!mailgunResponse.ok) {
       const error = await mailgunResponse.text()

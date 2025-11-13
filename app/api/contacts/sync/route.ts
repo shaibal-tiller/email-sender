@@ -1,3 +1,5 @@
+// shaibal-tiller/email-sender/email-sender-c22c2b1af63b53a59fceba3becd042d482fd2518/app/api/contacts/sync/route.ts
+
 import { neon } from "@neondatabase/serverless"
 
 const sql = neon(process.env.DATABASE_URL!)
@@ -7,12 +9,15 @@ export async function POST(request: Request) {
     const { contacts } = await request.json()
 
     for (const contact of contacts) {
-      await sql(
-        `INSERT INTO contacts (email, name, custom_fields) 
-         VALUES ($1, $2, $3) 
-         ON CONFLICT (email) DO UPDATE SET name=$2, custom_fields=$3`,
-        [contact.email, contact.name, JSON.stringify(contact.customFields || {})],
-      )
+      const name = contact.name
+      const customFields = contact.customFields || {}
+
+      // FIX: Changed to tagged template literal syntax
+      await sql`
+        INSERT INTO contacts (email, name, custom_fields) 
+        VALUES (${contact.email}, ${name}, ${customFields}) 
+        ON CONFLICT (email) DO UPDATE SET name=${name}, custom_fields=${customFields}
+      `
     }
 
     return Response.json({ success: true, count: contacts.length })
